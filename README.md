@@ -108,9 +108,51 @@ Before running the project, ensure you have the following installed:
 
 ## 📂 Project Structure
 
-Educational_grievance/ ├── frontend/ # React Application │ ├── src/ │ │ ├── components/ # Reusable UI (Navbar, StatusBadge) │ │ ├── pages/ # Login, Register, Dashboard │ │ ├── services/ # API integration (api.ts) │ │ └── types/ # TypeScript interfaces │ └── tailwind.config.cjs │ └── grievance-backend/ # Spring Boot Application ├── src/main/java/com/prajnan/grievance/ │ ├── controller/ # API Endpoints │ ├── model/ # Entities (User, Grievance) │ └── repository/ # JPA Repositories └── pom.xml
-
-
+Educational_grievance/
+│
+├── frontend/                            # React Frontend Application
+│   ├── src/
+│   │   ├── components/                  # Reusable UI Components
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── StatusBadge.tsx
+│   │   │   └── SubmitGrievanceModal.tsx
+│   │   ├── hooks/                       # Custom Hooks
+│   │   │   └── useAutoLogout.ts
+│   │   ├── pages/                       # Main View Pages
+│   │   │   ├── AdminDashBoard.tsx       # Admin view with charts
+│   │   │   ├── DashBoard.tsx            # Main wrapper component
+│   │   │   ├── Login.tsx                # Authentication page
+│   │   │   ├── Register.tsx             # User registration page
+│   │   │   └── StudentDashBoard.tsx     # Student view with grievance list
+│   │   ├── services/                    # API Integration
+│   │   │   └── api.ts                   # Fetch calls to backend
+│   │   ├── App.tsx                      # Main App Router
+│   │   ├── index.css                    # Global Styles & Tailwind Directives
+│   │   ├── index.tsx                    # Entry Point
+│   │   └── types.ts                     # TypeScript Interfaces & Enums
+│   │
+│   ├── package.json                     # Frontend Dependencies
+│   ├── postcss.config.cjs               # PostCSS Configuration
+│   ├── tailwind.config.cjs              # Tailwind CSS Configuration
+│   └── vite.config.ts                   # Vite Configuration
+│
+└── grievance-backend/                   # Spring Boot Backend Application
+    ├── src/
+    │   └── main/
+    │       ├── java/
+    │       │   └── com/
+    │       │       └── prajnan/
+    │       │           └── grievance/
+    │       │               ├── controller/  # REST Controllers (API Endpoints)
+    │       │               ├── model/       # Database Entities
+    │       │               │   ├── Grievance.java
+    │       │               │   └── User.java
+    │       │               ├── repository/  # Data Access Layer
+    │       │               └── service/     # Business Logic Layer
+    │       └── resources/
+    │           └── application.properties   # Database Configuration
+    │
+    └── pom.xml                          # Maven Dependencies
 ## 🤝 Contributing
 Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
 
