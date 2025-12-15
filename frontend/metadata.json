@@ -1,0 +1,5 @@
+{
+  "name": "Grievance Management System",
+  "description": "A comprehensive 3-tier grievance management application allowing students to submit complaints and administrators to track, assign, and resolve them. Features role-based dashboards, real-time status tracking, and statistical overviews.",
+  "requestFramePermissions": []
+}

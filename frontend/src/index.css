@@ -1,0 +1,65 @@
+
+/* Import Inter Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+}
+
+@layer components {
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300;
+  }
+
+  /* Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600;
+  }
+
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:to-purple-700 transition-all duration-300;
+  }
+
+  /* Form Elements */
+  .input-primary {
+    @apply block w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm placeholder-slate-400
+    focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all;
+  }
+
+  .btn-primary {
+    @apply flex justify-center items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white
+    bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700
+    shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transform active:scale-95 transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply flex justify-center items-center px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700
+    bg-white border border-slate-200 hover:bg-slate-50 hover:text-indigo-600
+    shadow-sm hover:shadow transition-all duration-200;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.98) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-enter {
+  animation: fadeInScale 0.4s ease-out forwards;
+}
