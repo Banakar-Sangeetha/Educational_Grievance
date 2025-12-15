@@ -150,7 +150,7 @@ Educational_grievance/
     │       │               ├── repository/  # Data Access Layer
     │       │               └── service/     # Business Logic Layer
     │       └── resources/
-    │           └── application.properties   # Database Configuration
+    │           └── application.properties   # Database Configurations
     │
     └── pom.xml                          # Maven Dependencies
 ## 🤝 Contributing
