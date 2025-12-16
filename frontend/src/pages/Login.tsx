@@ -8,15 +8,15 @@ import {
   Briefcase,
   ShieldCheck,
   ArrowRight,
-  CheckCircle2,
   Lock
 } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (user: User) => void;
+  onRegisterClick: () => void; // <--- NEW PROP
 }
 
-export const Login: React.FC<LoginProps> = ({ onLogin }) => {
+export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
@@ -63,15 +63,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     <div className="flex min-h-screen w-full bg-white">
       {/* LEFT SIDE - Colorful Visuals */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-slate-900">
-        {/* Abstract Background Gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-700 to-fuchsia-800 opacity-90"></div>
-
-        {/* Animated Shapes (Pure CSS) */}
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
         <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000"></div>
 
-        {/* Content Overlay */}
         <div className="relative z-10 flex flex-col justify-center px-16 h-full text-white">
           <div className="mb-8">
              <div className="inline-flex items-center justify-center p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 mb-6 shadow-xl">
@@ -87,16 +83,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                Submit tickets, track resolutions, and communicate securely with administration.
              </p>
           </div>
-
-          <div className="space-y-4">
-            {['Real-time Status Tracking', 'Secure & Anonymous Options', '24/7 Support Access'].map((item, idx) => (
-              <div key={idx} className="flex items-center space-x-3 text-indigo-50">
-                <CheckCircle2 className="h-5 w-5 text-green-400" />
-                <span className="font-medium">{item}</span>
-              </div>
-            ))}
-          </div>
-
           <div className="mt-12 text-xs text-indigo-200/60 font-medium">
             © 2024 University Administration System. Secure connection.
           </div>
@@ -105,12 +91,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
       {/* RIGHT SIDE - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-gray-50/50">
-        <div className="w-full max-w-md space-y-8">
+        <div className="w-full max-w-md space-y-8 animate-enter">
 
           <div className="text-left">
             <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
             <p className="mt-2 text-sm text-gray-500">
-              Please enter your details to sign in to your account.
+              Please enter your details to sign in.
             </p>
           </div>
 
@@ -125,7 +111,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           )}
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-
             {/* Role Selection Tabs */}
             <div className="space-y-3">
               <label className="text-sm font-semibold text-gray-700 block">Select your role</label>
@@ -147,33 +132,22 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       {getRoleIcon(r)}
                     </div>
                     <span className="text-xs font-bold uppercase tracking-wider">{r}</span>
-                    {role === r && (
-                      <div className="absolute top-2 right-2 h-2 w-2 bg-indigo-600 rounded-full animate-ping" />
-                    )}
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-center text-gray-400 h-4">
-                {getRoleDescription(role)}
-              </p>
             </div>
 
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400 text-sm">@</span>
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    className="block w-full pl-8 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
-                    placeholder="you@university.edu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
+                <input
+                  type="email"
+                  required
+                  className="input-primary"
+                  placeholder="you@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
 
               <div>
@@ -188,7 +162,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   <input
                     type="password"
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
+                    className="input-primary pl-10"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -200,7 +174,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.01]"
+              className="btn-primary w-full py-3.5 text-base shadow-xl"
             >
               {loading ? (
                 <>
@@ -215,20 +189,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               )}
             </button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-gray-50/50 text-gray-500">Need help?</span>
-              </div>
-            </div>
-
-            <div className="text-center">
+            {/* --- NEW REGISTER SECTION --- */}
+            <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Contact the IT Helpdesk at <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">support@univ.edu</a>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={onRegisterClick}
+                  className="font-semibold text-indigo-600 hover:text-indigo-500 hover:underline transition-all"
+                >
+                  Create an account
+                </button>
               </p>
             </div>
+
           </form>
         </div>
       </div>
