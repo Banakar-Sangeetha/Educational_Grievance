@@ -3,6 +3,7 @@ import { User, UserRole, Grievance } from '../types';
 import { api } from '../services/api';
 import { AdminDashBoard } from './AdminDashBoard';
 import { StudentDashboard } from './StudentDashBoard';
+import { FacultyDashBoard } from './FacultyDashBoard'; // <--- Import New Component
 import { Loader2 } from 'lucide-react';
 
 interface DashboardProps {
@@ -20,8 +21,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
       if (user.role === UserRole.ADMIN) {
         setGrievances(allGrievances);
-      } else {
-        // Filter based on userId
+      }
+      else if (user.role === UserRole.FACULTY) {
+        // Faculty see all grievances (filtered inside the component)
+        // OR you can filter here if you want strict security
+        setGrievances(allGrievances);
+      }
+      else {
+        // Students only see their own
         setGrievances(allGrievances.filter(g => g.userId === user.id));
       }
     } catch (error) {
@@ -46,8 +53,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     );
   }
 
+  // --- ROUTING LOGIC ---
   if (user.role === UserRole.ADMIN) {
     return <AdminDashBoard user={user} grievances={grievances} onUpdate={fetchData} />;
+  }
+
+  if (user.role === UserRole.FACULTY) {
+    return <FacultyDashBoard user={user} grievances={grievances} onUpdate={fetchData} />;
   }
 
   return <StudentDashboard user={user} grievances={grievances} onUpdate={fetchData} />;

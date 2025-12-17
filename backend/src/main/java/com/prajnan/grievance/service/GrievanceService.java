@@ -13,30 +13,26 @@ public class GrievanceService {
     @Autowired
     private GrievanceRepository repository;
 
-    // Save a new grievance
     public Grievance saveGrievance(Grievance grievance) {
         return repository.save(grievance);
     }
 
-    // Get all grievances
     public List<Grievance> getAllGrievances() {
         return repository.findAll();
     }
 
-    // Update an existing grievance (The code you provided)
+    // New method needed for downloads
+    public Grievance getGrievanceById(Long id) {
+        return repository.findById(id).orElse(null);
+    }
+
     public Grievance updateGrievance(Long id, Grievance updates) {
         return repository.findById(id)
                 .map(g -> {
-                    // Only update status if a new one is provided
-                    if (updates.getStatus() != null) {
-                        g.setStatus(updates.getStatus());
-                    }
-                    // Only update notes if new notes are provided
-                    if (updates.getResolutionNotes() != null) {
-                        g.setResolutionNotes(updates.getResolutionNotes());
-                    }
+                    if (updates.getStatus() != null) g.setStatus(updates.getStatus());
+                    if (updates.getResolutionNotes() != null) g.setResolutionNotes(updates.getResolutionNotes());
                     return repository.save(g);
                 })
-                .orElse(null); // Returns null if ID wasn't found
+                .orElse(null);
     }
 }

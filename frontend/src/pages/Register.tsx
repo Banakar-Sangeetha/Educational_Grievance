@@ -5,7 +5,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 
 interface RegisterProps {
   onRegister: (user: User) => void;
-  onLoginClick: () => void; // <--- NEW PROP
+  onLoginClick: () => void;
 }
 
 export const Register: React.FC<RegisterProps> = ({ onRegister, onLoginClick }) => {
@@ -22,8 +22,16 @@ export const Register: React.FC<RegisterProps> = ({ onRegister, onLoginClick }) 
     setLoading(true);
     try {
       if (password.length < 4) throw new Error('Password must be at least 4 characters');
-      const user = await api.register(name, email, role, password);
-      onRegister(user);
+
+      // 1. Create the user in the backend
+      await api.register(name, email, role, password);
+
+      // 2. Success Message
+      alert("Registration successful! Please login with your credentials.");
+
+      // 3. Redirect to Login Page (Instead of Dashboard)
+      onLoginClick();
+
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
     } finally {
@@ -92,6 +100,8 @@ export const Register: React.FC<RegisterProps> = ({ onRegister, onLoginClick }) 
               >
                 <option value={UserRole.STUDENT}>Student</option>
                 <option value={UserRole.FACULTY}>Faculty</option>
+                {/* Added Admin option if needed for testing */}
+                <option value={UserRole.ADMIN}>Admin</option>
               </select>
             </div>
             <div>

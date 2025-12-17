@@ -25,6 +25,7 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string; // Added optional avatar support
+  password?: string;
 }
 
 export interface Grievance {
@@ -37,7 +38,7 @@ export interface Grievance {
   status: GrievanceStatus;
   createdAt: string;
   updatedAt: string;
-  attachmentName?: string;
+  fileName?: string;
   resolutionNotes?: string;
 }
 

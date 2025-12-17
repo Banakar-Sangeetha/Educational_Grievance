@@ -13,7 +13,7 @@ import {
 
 interface LoginProps {
   onLogin: (user: User) => void;
-  onRegisterClick: () => void; // <--- NEW PROP
+  onRegisterClick: () => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
@@ -34,10 +34,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
 
     setLoading(true);
     try {
+      // This will now throw a specific error if backend rejects it
       const user = await api.login(email, password, role);
       onLogin(user);
     } catch (err: any) {
-      setError('Invalid credentials or network error.');
+      // FIX: Use the actual error message from the backend/api.ts
+      // This will now say "Invalid credentials" or "User not found"
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -48,14 +51,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
       case UserRole.STUDENT: return <GraduationCap className="h-6 w-6" />;
       case UserRole.FACULTY: return <Briefcase className="h-6 w-6" />;
       case UserRole.ADMIN: return <ShieldCheck className="h-6 w-6" />;
-    }
-  };
-
-  const getRoleDescription = (r: UserRole) => {
-    switch (r) {
-      case UserRole.STUDENT: return "Access course materials & track grievances";
-      case UserRole.FACULTY: return "Manage coursework & student requests";
-      case UserRole.ADMIN: return "System oversight & resolution management";
     }
   };
 
@@ -84,7 +79,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
              </p>
           </div>
           <div className="mt-12 text-xs text-indigo-200/60 font-medium">
-            © 2024 University Administration System. Secure connection.
+            © 2025 University Administration System. Secure connection.
           </div>
         </div>
       </div>
@@ -100,11 +95,13 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
             </p>
           </div>
 
+          {/* ERROR ALERT BOX */}
           {error && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg flex items-start animate-in fade-in slide-in-from-top-2 duration-300">
               <AlertCircle className="h-5 w-5 text-red-600 mr-3 mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-sm font-medium text-red-800">Authentication Error</h3>
+                <h3 className="text-sm font-medium text-red-800">Login Failed</h3>
+                {/* This will now show the specific reason */}
                 <p className="text-sm text-red-700 mt-1">{error}</p>
               </div>
             </div>
@@ -189,7 +186,6 @@ export const Login: React.FC<LoginProps> = ({ onLogin, onRegisterClick }) => {
               )}
             </button>
 
-            {/* --- NEW REGISTER SECTION --- */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
