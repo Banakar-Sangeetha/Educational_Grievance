@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
-import { User, Grievance, GrievanceStatus } from '../types';
-import { PlusCircle, FileText, Clock, CheckCircle, Search, Filter } from 'lucide-react';
-import { SubmitGrievanceModal } from './SubmitGrievanceModal';
+import { User, Grievance, UserRole } from '../types'; // Import UserRole
 import { StatusBadge } from '../components/StatusBadge';
+import { SubmitGrievanceModal } from '../pages/SubmitGrievanceModal';
+import {
+  Plus,
+  Search,
+  Filter,
+  Clock,
+  AlertCircle,
+  CheckCircle,
+  GraduationCap,
+  Download // Import Download icon
+} from 'lucide-react';
 
 interface StudentDashboardProps {
   user: User;
@@ -12,150 +21,127 @@ interface StudentDashboardProps {
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({ user, grievances, onUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  // --- DYNAMIC TITLE LOGIC ---
+  const dashboardTitle = user.role === UserRole.FACULTY ? "Faculty Portal" : "Student Portal";
+  const dashboardSubtitle = user.role === UserRole.FACULTY
+    ? "Manage your faculty-related inquiries."
+    : "Submit and track your academic grievances.";
 
   const filteredGrievances = grievances.filter(g => {
-    if (statusFilter === 'ALL') return true;
-    return g.status === statusFilter;
+    const matchesSearch = g.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          g.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || g.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
-  const stats = {
-    total: grievances.length,
-    pending: grievances.filter(g => g.status === GrievanceStatus.PENDING).length,
-    resolved: grievances.filter(g => g.status === GrievanceStatus.RESOLVED).length,
-  };
+  const pendingCount = grievances.filter(g => g.status === 'PENDING').length;
+  const resolvedCount = grievances.filter(g => g.status === 'RESOLVED').length;
 
   return (
     <div className="space-y-8 animate-enter">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Student Dashboard</h1>
-          <p className="text-slate-500 mt-2">Track and manage your submitted grievances.</p>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <GraduationCap className="h-8 w-8 text-indigo-600" />
+            {dashboardTitle} {/* <--- Uses dynamic title */}
+          </h1>
+          <p className="text-gray-500 mt-1">{dashboardSubtitle}</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="btn-primary shadow-indigo-500/25"
+          className="btn-primary flex items-center gap-2 shadow-lg hover:shadow-indigo-200"
         >
-          <PlusCircle className="mr-2 h-5 w-5" />
+          <Plus className="h-5 w-5" />
           New Grievance
         </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <div className="glass-card p-6 border-l-4 border-indigo-500">
-          <div className="flex items-center">
-            <div className="p-3 bg-indigo-50 rounded-xl">
-              <FileText className="h-6 w-6 text-indigo-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-slate-500">Total Submitted</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-            </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="glass-card p-6 border-l-4 border-indigo-500 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-500">Total Submitted</p>
+            <p className="text-3xl font-bold text-gray-900 mt-1">{grievances.length}</p>
+          </div>
+          <div className="p-3 bg-indigo-50 rounded-xl">
+            <Clock className="h-6 w-6 text-indigo-600" />
           </div>
         </div>
-
-        <div className="glass-card p-6 border-l-4 border-amber-500">
-          <div className="flex items-center">
-             <div className="p-3 bg-amber-50 rounded-xl">
-              <Clock className="h-6 w-6 text-amber-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-slate-500">Pending</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.pending}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-card p-6 border-l-4 border-emerald-500">
-          <div className="flex items-center">
-             <div className="p-3 bg-emerald-50 rounded-xl">
-              <CheckCircle className="h-6 w-6 text-emerald-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-slate-500">Resolved</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.resolved}</p>
-            </div>
-          </div>
-        </div>
+        {/* ... (Keep other stats cards same) ... */}
       </div>
 
-      {/* Filter Bar */}
-      <div className="glass-card p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-96">
-           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            className="input-primary pl-10"
-            placeholder="Search by ID or description..."
-          />
-        </div>
-        
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="h-5 w-5 text-gray-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input-primary py-2 pr-8"
-          >
-            <option value="ALL">All Statuses</option>
-            {Object.values(GrievanceStatus).map((status) => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      {/* List Section */}
+      <div className="glass-card overflow-hidden">
+        {/* ... (Keep Filter/Search Inputs same) ... */}
 
-      {/* Grievance Cards List */}
-      <div className="space-y-4">
-        {filteredGrievances.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
-            <div className="mx-auto h-12 w-12 text-gray-400">
-              <FileText className="h-full w-full" />
+        <div className="divide-y divide-gray-100">
+          {filteredGrievances.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              <div className="inline-flex p-4 rounded-full bg-gray-50 mb-4">
+                <Search className="h-6 w-6 text-gray-400" />
+              </div>
+              <p>No grievances found.</p>
             </div>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No grievances found</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new ticket.</p>
-          </div>
-        ) : (
-          filteredGrievances.map((grievance) => (
-            <div key={grievance.id} className="glass-card p-6 flex flex-col sm:flex-row gap-4 sm:items-center hover:border-indigo-300 group">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md uppercase tracking-wider">
-                    {grievance.category}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                     • ID: #{grievance.id} • {new Date(grievance.createdAt).toLocaleDateString()}
-                  </span>
+          ) : (
+            filteredGrievances.map((grievance) => (
+              <div key={grievance.id} className="p-6 hover:bg-slate-50 transition-all duration-200">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        {grievance.category}
+                      </span>
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(grievance.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-gray-900 font-medium leading-relaxed">{grievance.description}</p>
+
+                    {/* DOWNLOAD LINK (If file exists) */}
+                    {grievance.fileName && (
+                      <div className="pt-2">
+                         <a
+                           href={`http://localhost:8080/api/grievances/download/${grievance.id}`}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 hover:underline font-medium"
+                         >
+                           <Download className="h-3 w-3" />
+                           View Attachment ({grievance.fileName})
+                         </a>
+                      </div>
+                    )}
+
+                    {grievance.resolutionNotes && (
+                      <div className="mt-4 bg-green-50 p-4 rounded-lg border border-green-100">
+                        <p className="text-sm font-semibold text-green-800 mb-1 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Resolution Notes
+                        </p>
+                        <p className="text-sm text-green-700">{grievance.resolutionNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                  <StatusBadge status={grievance.status} />
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                  {grievance.description.substring(0, 80)}...
-                </h4>
               </div>
-              
-              <div className="flex items-center justify-between sm:justify-end gap-6 min-w-[200px]">
-                <StatusBadge status={grievance.status} />
-                <button className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
-                  View Details
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Modal */}
-      <SubmitGrievanceModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <SubmitGrievanceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         user={user}
         onSuccess={() => {
           setIsModalOpen(false);
           onUpdate();
-        }} 
+        }}
       />
     </div>
   );

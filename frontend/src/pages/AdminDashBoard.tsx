@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { User, Grievance, GrievanceStatus } from '../types';
 import { api } from '../services/api';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { StatusBadge } from '../components/StatusBadge';
-import { Users, Search, Filter, FileBarChart, LayoutDashboard, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
+import { Users, Search, FileBarChart, LayoutDashboard, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface AdminDashboardProps {
   user: User;
@@ -18,12 +18,13 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
   const [resolutionNote, setResolutionNote] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Stats Logic
+  // --- FIX: ROBUST COUNTING LOGIC (Case Insensitive) ---
   const total = grievances.length;
-  const pending = grievances.filter(g => g.status === GrievanceStatus.PENDING).length;
-  const inProgress = grievances.filter(g => g.status === GrievanceStatus.IN_PROGRESS).length;
-  const resolved = grievances.filter(g => g.status === GrievanceStatus.RESOLVED).length;
-  const escalated = grievances.filter(g => g.status === GrievanceStatus.ESCALATED).length;
+
+  const pending = grievances.filter(g => g.status.toUpperCase() === 'PENDING').length;
+  const inProgress = grievances.filter(g => g.status.toUpperCase() === 'IN_PROGRESS').length;
+  const resolved = grievances.filter(g => g.status.toUpperCase() === 'RESOLVED').length;
+  const escalated = grievances.filter(g => g.status.toUpperCase() === 'ESCALATED').length;
 
   const chartData = [
     { name: 'Pending', value: pending, color: '#f59e0b' },
@@ -35,7 +36,10 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
   const filteredGrievances = grievances.filter(g => {
     const matchesSearch = g.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           g.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'All' || g.status === filterStatus;
+
+    // FIX: Compare statuses case-insensitively
+    const matchesStatus = filterStatus === 'All' || g.status.toUpperCase() === filterStatus.toUpperCase();
+
     return matchesSearch && matchesStatus;
   });
 
@@ -49,6 +53,8 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
       setResolutionNote('');
       setSelectedGrievance(null);
       onUpdate();
+    } catch (e) {
+      alert("Failed to update status");
     } finally {
       setActionLoading(false);
     }
@@ -118,11 +124,10 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
           </div>
         </div>
 
-        {/* Placeholder for future bar chart or activity feed */}
-         <div className="glass-card p-6 flex items-center justify-center bg-indigo-50/50 border-dashed border-2 border-indigo-200">
-            <div className="text-center">
-                <p className="text-indigo-400 font-medium">Activity Analytics Coming Soon</p>
-            </div>
+        <div className="glass-card p-6 flex items-center justify-center bg-indigo-50/50 border-dashed border-2 border-indigo-200">
+           <div className="text-center">
+              <p className="text-indigo-400 font-medium">Activity Analytics Coming Soon</p>
+           </div>
         </div>
       </div>
 
@@ -133,15 +138,15 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
           <div className="flex gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
+              <input
+                type="text"
+                placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-            <select 
+            <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -189,16 +194,15 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
                       <StatusBadge status={grievance.status} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                       <button 
-                         onClick={() => setSelectedGrievance(selectedGrievance?.id === grievance.id ? null : grievance)}
-                         className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
-                       >
-                         {selectedGrievance?.id === grievance.id ? 'Close' : 'Manage'}
-                       </button>
+                        <button
+                          onClick={() => setSelectedGrievance(selectedGrievance?.id === grievance.id ? null : grievance)}
+                          className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
+                        >
+                          {selectedGrievance?.id === grievance.id ? 'Close' : 'Manage'}
+                        </button>
                     </td>
                   </tr>
-                  
-                  {/* Expanded Management Row */}
+
                   {selectedGrievance?.id === grievance.id && (
                     <tr className="bg-indigo-50/50">
                       <td colSpan={5} className="px-6 py-4">
@@ -213,15 +217,17 @@ export const AdminDashBoard: React.FC<AdminDashboardProps> = ({ user, grievances
                               onChange={(e) => setResolutionNote(e.target.value)}
                             />
                             <div className="flex flex-col gap-2 min-w-[150px]">
-                              <button 
+                              <button
                                 onClick={() => handleStatusUpdate(grievance.id, GrievanceStatus.RESOLVED)}
-                                className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors"
+                                disabled={actionLoading}
+                                className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                               >
-                                Mark Resolved
+                                {actionLoading ? 'Saving...' : 'Mark Resolved'}
                               </button>
-                              <button 
+                              <button
                                 onClick={() => handleStatusUpdate(grievance.id, GrievanceStatus.ESCALATED)}
-                                className="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors"
+                                disabled={actionLoading}
+                                className="w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                               >
                                 Escalate
                               </button>
