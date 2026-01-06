@@ -1,22 +1,24 @@
 export enum UserRole {
-  STUDENT = 'student',
-  ADMIN = 'admin',
-  FACULTY = 'faculty'
+  STUDENT = 'STUDENT',
+  FACULTY = 'FACULTY',
+  ADMIN = 'ADMIN',
+  SUPER_ADMIN = 'SUPER_ADMIN' // New Role
 }
 
 export enum GrievanceStatus {
-  PENDING = 'Pending',
-  IN_PROGRESS = 'In Progress',
-  RESOLVED = 'Resolved',
-  ESCALATED = 'Escalated'
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESOLVED = 'RESOLVED',
+  ESCALATED = 'ESCALATED'
 }
 
 export enum GrievanceCategory {
-  ACADEMIC = 'Academic',
-  FACILITY = 'Facility',
-  ADMINISTRATION = 'Administration',
-  HARASSMENT = 'Harassment',
-  OTHER = 'Other'
+  ACADEMIC = 'ACADEMIC',
+  FACILITY = 'FACILITY',
+  ADMINISTRATION = 'ADMINISTRATION',
+  HARASSMENT = 'HARASSMENT',
+  OTHER = 'OTHER',
+  FACULTY = 'FACULTY'
 }
 
 export interface User {
@@ -24,22 +26,23 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  avatar?: string; // Added optional avatar support
+  avatar?: string;
   password?: string;
 }
 
 export interface Grievance {
   id: number;
-  userId: string; // Ensuring we can track who created it
+  userId: string;
   userName: string;
   title?: string;
   description: string;
   category: GrievanceCategory;
   status: GrievanceStatus;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   fileName?: string;
   resolutionNotes?: string;
+  assignedRole?: string;
 }
 
 export interface DashboardStats {

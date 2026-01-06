@@ -29,6 +29,12 @@ public class Grievance {
     private String fileName;
     private String fileType;
 
+    // ... inside Grievance class ...
+    private String assignedRole;
+
+    public String getAssignedRole() { return assignedRole; }
+    public void setAssignedRole(String assignedRole) { this.assignedRole = assignedRole; }
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] fileData;

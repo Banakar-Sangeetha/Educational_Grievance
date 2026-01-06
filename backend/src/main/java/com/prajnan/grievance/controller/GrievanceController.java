@@ -34,7 +34,7 @@ public class GrievanceController {
     @Autowired
     private EmailService emailService;
 
-    // --- USER ENDPOINTS ---
+    // --- AUTH / REGISTRATION ENDPOINTS ---
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User newUser) {
@@ -47,6 +47,7 @@ public class GrievanceController {
             newUser.setId(UUID.randomUUID().toString());
         }
 
+        // Default role logic can be handled here or frontend
         if (newUser.getRole() == null || newUser.getRole().isEmpty()) {
             newUser.setRole("STUDENT");
         }
@@ -61,35 +62,41 @@ public class GrievanceController {
         }
     }
 
+    // ... inside GrievanceController class ...
+
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
+
+        // 1. CHECK DATABASE FIRST
         Optional<User> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{\"message\":\"User not found\"}");
+            // Return 404 if email doesn't exist
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"message\":\"Email not found in database\"}");
         }
 
         User user = userOpt.get();
 
-        // Generate 6-digit OTP
+        // 2. GENERATE OTP
         String otp = String.valueOf(new Random().nextInt(900000) + 100000);
-
-        // Save to DB
         user.setResetToken(otp);
-        user.setTokenExpiry(LocalDateTime.now().plusMinutes(10)); // Valid for 10 mins
+        user.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
         userRepository.save(user);
 
-        // Send Email
+        // 3. SEND EMAIL
         try {
             emailService.sendOtpEmail(email, otp);
             return ResponseEntity.ok("{\"message\": \"OTP sent to email\"}");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"message\": \"Error sending email\"}");
+            // If email fails (Auth error), return 500 but log the error
+            System.err.println("Email send failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"message\": \"Failed to send email. Check backend console for OTP.\"}");
         }
     }
 
-    // --- 2. RESET PASSWORD (Verify OTP & Change Password) ---
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -100,16 +107,11 @@ public class GrievanceController {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-
-            // Check if OTP matches and is not expired
             if (user.getResetToken() != null
                     && user.getResetToken().equals(otp)
                     && user.getTokenExpiry().isAfter(LocalDateTime.now())) {
 
-                // Update Password
                 user.setPassword(passwordEncoder.encode(newPassword));
-
-                // Clear OTP
                 user.setResetToken(null);
                 user.setTokenExpiry(null);
                 userRepository.save(user);
@@ -117,7 +119,6 @@ public class GrievanceController {
                 return ResponseEntity.ok("{\"message\": \"Password updated successfully\"}");
             }
         }
-
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"message\": \"Invalid or expired OTP\"}");
     }
 
@@ -139,14 +140,12 @@ public class GrievanceController {
                 }
             }
         }
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body("{\"message\": \"Invalid credentials\"}");
     }
 
     // --- GRIEVANCE ENDPOINTS ---
 
-    // Updated ADD endpoint to handle File Uploads
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addGrievance(
             @RequestParam("description") String description,
@@ -162,7 +161,13 @@ public class GrievanceController {
             g.setUserId(userId);
             g.setUserName(userName);
             g.setStatus("PENDING");
-            //g.setCreatedAt(new Date());
+
+            // Simple logic: if category is academic -> assign FACULTY, else -> ADMIN
+            if ("ACADEMIC".equalsIgnoreCase(category) || "FACULTY".equalsIgnoreCase(category)) {
+                g.setAssignedRole("FACULTY");
+            } else {
+                g.setAssignedRole("ADMIN");
+            }
 
             if (file != null && !file.isEmpty()) {
                 g.setFileName(file.getOriginalFilename());
@@ -188,7 +193,6 @@ public class GrievanceController {
         return service.updateGrievance(id, updates);
     }
 
-    // New DOWNLOAD Endpoint
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) {
         Grievance g = service.getGrievanceById(id);
@@ -201,5 +205,30 @@ public class GrievanceController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + g.getFileName() + "\"")
                 .contentType(MediaType.parseMediaType(g.getFileType()))
                 .body(g.getFileData());
+    }
+
+    // --- NEW: USER MANAGEMENT ENDPOINTS ---
+
+    @GetMapping("/users")
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable String id) {
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("{\"message\": \"User deleted successfully\"}");
+    }
+
+    @PutMapping("/users/{id}/role")
+    public ResponseEntity<?> updateUserRole(@PathVariable String id, @RequestBody Map<String, String> request) {
+        String newRole = request.get("role");
+        return userRepository.findById(id)
+                .map(user -> {
+                    user.setRole(newRole);
+                    userRepository.save(user);
+                    return ResponseEntity.ok("{\"message\": \"Role updated successfully\"}");
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

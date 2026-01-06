@@ -13,23 +13,36 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!isOpen) return null;
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setMessage('');
+    setErrorMsg('');
+
     try {
+      // NOTE: Ensure port matches your backend (8080 or 9090)
       const res = await fetch('http://localhost:8080/api/grievances/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
-      if (!res.ok) throw new Error("User not found");
-      setMessage("OTP sent to your email!");
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Throw the specific error from the backend (e.g. "Email not found")
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      setMessage("OTP sent! (Check your email or console)");
       setStep(2);
-    } catch (err) {
-      alert("Failed to send OTP. Check email.");
+
+    } catch (err: any) {
+      setErrorMsg(err.message);
     } finally {
       setLoading(false);
     }
@@ -38,17 +51,28 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
+
     try {
       const res = await fetch('http://localhost:8080/api/grievances/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp, newPassword })
       });
-      if (!res.ok) throw new Error("Invalid OTP");
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Invalid OTP");
+
       alert("Password reset successfully! Please Login.");
       onClose();
-    } catch (err) {
-      alert("Invalid or Expired OTP.");
+      // Reset State
+      setStep(1);
+      setEmail('');
+      setOtp('');
+      setNewPassword('');
+    } catch (err: any) {
+      setErrorMsg(err.message);
     } finally {
       setLoading(false);
     }
@@ -66,7 +90,11 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
           {step === 1 ? "Enter your email to receive an OTP." : "Enter the OTP sent to your email."}
         </p>
 
-        {message && <p className="text-green-600 text-sm mb-4 bg-green-50 p-2 rounded">{message}</p>}
+        {/* Success Message */}
+        {message && <p className="text-green-600 text-sm mb-4 bg-green-50 p-3 rounded-lg border border-green-100">{message}</p>}
+
+        {/* Error Message */}
+        {errorMsg && <p className="text-red-600 text-sm mb-4 bg-red-50 p-3 rounded-lg border border-red-100">{errorMsg}</p>}
 
         {step === 1 ? (
           <form onSubmit={handleSendOtp} className="space-y-4">
@@ -78,6 +106,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
                   type="email" required
                   className="input-primary pl-10"
                   value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="Enter your registered email"
                 />
               </div>
             </div>
@@ -95,6 +124,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
                   type="text" required
                   className="input-primary pl-10"
                   value={otp} onChange={e => setOtp(e.target.value)}
+                  placeholder="123456"
                 />
               </div>
             </div>
@@ -106,6 +136,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ isOpen
                   type="password" required
                   className="input-primary pl-10"
                   value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
                 />
               </div>
             </div>
